@@ -2,8 +2,6 @@ from random import uniform
 from tkinter import *
 import datetime
 
-
-
 #glavna naloga okna je da dobimo višino, širino in štbomb, ki jih uporabnik vpiše v okna
 #vpisavanje in branje highscore-a
 class Zacetno_okno:
@@ -112,14 +110,14 @@ class Glavno_okno:
         self.smiley = Button(self.okno_zgori, image=self.slika_smiley1, text='aaa', command=self.try_again_okno)
         self.smiley.grid(row=0)
 
-        self.fun_knofi = lambda x, y: Button(self.okno_spodi, height=1, width=2, command=lambda: self.callback(x, y))
+        self.fun_gumbi = lambda x, y: Button(self.okno_spodi, height=1, width=2, command=lambda: self.callback(x, y))
         self.fun_label = lambda x, y, polje, barva='green': Label(self.okno_spodi, height=1, width=2, padx=3, pady=3, text=str(polje), fg=barva).grid(row=x, column=y)
 
         self.knofi = [[0] * sirina for _ in range(visina)]
 
         for i in range(visina):
             for j in range(sirina):
-               self.knofi[i][j] = self.fun_knofi(i,j)
+               self.knofi[i][j] = self.fun_gumbi(i, j)
                #self.knofi[i][j].bind("<Button-3>", lambda gumb=self.knofi[i][j]:self.zastavica(gumb))
                self.knofi[i][j].grid(row=i, column=j)
 
@@ -211,7 +209,6 @@ class Glavno_okno:
         for child in self.okno_spodi.winfo_children():
             child.configure(state='disable')
 
-
     def try_again_okno(self):
         self.tk_t_a_okno= Tk()
         self.t_a_okno = Frame(self.tk_t_a_okno)
@@ -292,8 +289,6 @@ class Minolovec:
                             stevec += 1
         return stevec
 
-
-
     #odkrije polje ko uporabnik pritisne na gumb
     def odkrij(self, x, y):
         return str(self.tabela[x][y])
@@ -303,7 +298,6 @@ class Minolovec:
         for i in self.nicle:
             if nicla in i:
                 return i
-
 
     # ZGENERIRA TABELO ZA IGRO
     def gen_tabelo(self):
@@ -373,8 +367,7 @@ class Minolovec:
             lista_nicel.append(otocec)
         return (podlaga, lista_nicel)
 
-
-    # lepši izpis podlage
+    # lepši izpis tabele
     def izpis_tabele(self):
         for i in self.tabela:
             a = ''
