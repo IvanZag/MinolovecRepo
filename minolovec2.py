@@ -12,13 +12,27 @@ class Zacetno_okno:
         self.okno = Frame(tk)
         self.vrednosti = (0,0,0)
 
-        self.gumb1 = Button(self.okno, text="Nova igra", fg="green", command=self.vnosi_okno)
+        self.gumb1 = Button(self.okno, text="Nova igra", command=self.vnosi_okno)
         self.gumb1.grid(row=0)
-        self.gumb2 = Button(self.okno, text="Highscore", fg="blue", command=self.preberi_highscore)
+        self.gumb2 = Button(self.okno, text="Highscore", command=self.preberi_highscore)
         self.gumb2.grid(row=1)
-        self.gumb3 = Button(self.okno, text="Izhod", fg="red", command=exit)
+        self.gumb3 = Button(self.okno, text="Izhod", command=exit)
         self.gumb3.grid(row=2)
         self.okno.pack()
+
+        self.tk.protocol("WM_DELETE_WINDOW", exit)
+        self.tk.mainloop()
+
+    def enable(self, tk):
+        self.gumb1.configure(state=ACTIVE)
+        self.gumb2.configure(state=ACTIVE)
+        self.gumb3.configure(state=ACTIVE)
+        tk.destroy()
+
+    def disable(self):
+        self.gumb1.configure(state='disable')
+        self.gumb2.configure(state='disable')
+        self.gumb3.configure(state='disable')
 
     def preberi_highscore_file(self):
         lista = []
@@ -31,30 +45,35 @@ class Zacetno_okno:
         now = datetime.datetime.now()
         with open(self.highscore_file, 'w') as d:
             for vrstica in self.highscore:
-                print(vrstica)
                 d.write(vrstica)
             print(ime + "\t\t" + now.strftime("%Y-%m-%d")+ "\t\t" + str(vis)+'×'+str(sir)+', '+str(bomb), file=d)
 
     def preberi_highscore(self):
-        tk4 = Tk()
-        wkno = Frame(tk4)
-        naredi_vrstico = lambda vrsta, tekst: Label(wkno, text=tekst).grid(row=vrsta, column=0)
+        self.disable()
+
+        self.tk4 = Tk()
+        highscore_okno = Frame(self.tk4)
+        naredi_vrstico = lambda vrsta, tekst: Label(highscore_okno, text=tekst).grid(row=vrsta, column=0)
+
         row_count = 0
         with open(self.highscore_file) as d:
             for vrstica in d:
                 naredi_vrstico(row_count, vrstica[:len(vrstica)-2])
                 row_count += 1
-        wkno.pack()
-        tk4.mainloop()
+
+        highscore_okno.pack()
+        self.tk4.protocol("WM_DELETE_WINDOW", lambda x=self.tk4: self.enable(x))
+        self.tk4.mainloop()
 
     def vnosi_okno(self):
-        self.tk_v_okno = Tk()
+        self.disable()
 
-        vmesno_okno = Frame(self.tk_v_okno)
+        self.tk_vmesno_okno = Tk()
+        vmesno_okno = Frame(self.tk_vmesno_okno)
 
-        self.v_visina = Entry(vmesno_okno)
-        self.v_sirina = Entry(vmesno_okno)
-        self.v_stbomb = Entry(vmesno_okno)
+        self.visina = Entry(vmesno_okno)
+        self.sirina = Entry(vmesno_okno)
+        self.stbomb = Entry(vmesno_okno)
 
         l_visina = Label(vmesno_okno, text='Vpiši višino: ')
         l_sirina = Label(vmesno_okno, text='Vpiši širino: ')
@@ -67,39 +86,43 @@ class Zacetno_okno:
         l_sirina.grid(row=1, column=0)
         l_stbomb.grid(row=2, column=0)
 
-        self.v_visina.grid(row=0, column=1)
-        self.v_sirina.grid(row=1, column=1)
-        self.v_stbomb.grid(row=2, column=1)
+        self.visina.grid(row=0, column=1)
+        self.sirina.grid(row=1, column=1)
+        self.stbomb.grid(row=2, column=1)
 
         gumb2.grid(row=3, column=1)
         tip_of_the_day.grid(row=3, column=0)
 
         vmesno_okno.pack()
-        self.tk_v_okno.mainloop()
-
+        self.tk_vmesno_okno.protocol("WM_DELETE_WINDOW", lambda x=self.tk_vmesno_okno: self.enable(x))
+        self.tk_vmesno_okno.mainloop()
 
     def vpis(self):
-        self.visina, self.sirina, self.stbomb = int(self.v_visina.get()), int(self.v_sirina.get()), int(self.v_stbomb.get())
-        minolovec = Minolovec(self.visina, self.sirina, self.stbomb)
-        self.tk.destroy()
-        self.tk_v_okno.destroy()
-
-        tk_glavno_okno = Tk()
-        glavno_okno = Glavno_okno(tk_glavno_okno, self.visina, self.sirina, self.stbomb, minolovec, self)
+        try:
+            visina, sirina, stbomb = int(self.visina.get()), int(self.sirina.get()), int(self.stbomb.get())
+            if (visina > 4 and visina <= 30) and (sirina > 4 and sirina <= 30) and (stbomb > 0 and stbomb < sirina * visina):
+                minolovec = Minolovec(visina, sirina, stbomb)
+                self.tk.destroy()
+                self.tk_vmesno_okno.destroy()
+                Glavno_okno(Tk(), minolovec, self)
+        except:
+            print('abc')
 
 class Glavno_okno:
-    def __init__(self, tk, visina, sirina, stbomb, minolovec, zac_okno):
+    def __init__(self, tk, minolovec, zac_okno):
         self.odprto = []
-        self.tk = tk
+        self.je_konec_igre = False
+        self.tk_glavno_okno = tk
         self.minolovec = minolovec
         self.zac_okno = zac_okno
-        self.visina = visina
-        self.sirina = sirina
-        self.stbomb = stbomb
+
+        self.visina = self.minolovec.visina
+        self.sirina = self.minolovec.sirina
+        self.stbomb = self.minolovec.stbomb
         self.ime_highscore = ''
 
-        self.okno_zgori = Frame(tk)
-        self.okno_spodi = Frame(tk)
+        self.okno_zgori = Frame(self.tk_glavno_okno)
+        self.okno_spodi = Frame(self.tk_glavno_okno)
 
         self.slika_bomb = PhotoImage(file='bomb.png')
         self.slika_smiley1 = PhotoImage(file='smiley1.png')
@@ -107,32 +130,35 @@ class Glavno_okno:
         self.slika_smiley3 = PhotoImage(file='smiley3.png')
         self.slika_zastavica = PhotoImage(file='zastavica.png')
 
-        self.smiley = Button(self.okno_zgori, image=self.slika_smiley1, text='aaa', command=self.try_again_okno)
+        self.smiley = Button(self.okno_zgori, image=self.slika_smiley1, text='aaa', command=self.try_again)
         self.smiley.grid(row=0)
 
         self.fun_gumbi = lambda x, y: Button(self.okno_spodi, height=1, width=2, command=lambda: self.callback(x, y))
         self.fun_label = lambda x, y, polje, barva='green': Label(self.okno_spodi, height=1, width=2, padx=3, pady=3, text=str(polje), fg=barva).grid(row=x, column=y)
 
-        self.knofi = [[0] * sirina for _ in range(visina)]
+        self.knofi = [[0] * self.sirina for _ in range(self.visina)]
 
-        for i in range(visina):
-            for j in range(sirina):
+        for i in range(self.visina):
+            for j in range(self.sirina):
                self.knofi[i][j] = self.fun_gumbi(i, j)
                #self.knofi[i][j].bind("<Button-3>", lambda gumb=self.knofi[i][j]:self.zastavica(gumb))
                self.knofi[i][j].grid(row=i, column=j)
 
         self.okno_zgori.grid(row=0)
         self.okno_spodi.grid(row=1)
-        self.tk.mainloop()
+
+        self.tk_glavno_okno.protocol("WM_DELETE_WINDOW", exit)
+        self.tk_glavno_okno.mainloop()
 
     def callback(self, x, y):
         polje = self.minolovec.odkrij(x, y)
 
         if int(polje) == -1:
             self.knofi[x][y].grid_remove()
-            self.smiley.configure(image=self.slika_smiley3)
             Label(self.okno_spodi, image = self.slika_bomb).grid(row=x, column=y)
-            self.mina()
+            self.smiley.configure(image=self.slika_smiley3)
+            self.je_konec_igre = True
+            self.disable()
 
         elif int(polje) == 0:
             otocec = self.minolovec.vrni_otocec((x, y))
@@ -205,43 +231,50 @@ class Glavno_okno:
         if  self.visina * self.sirina - len(self.odprto) == self.minolovec.stbomb:
             self.za_konec_igre()
 
-    def mina(self):
+    def disable(self):
         for child in self.okno_spodi.winfo_children():
             child.configure(state='disable')
 
-    def try_again_okno(self):
-        self.tk_t_a_okno= Tk()
-        self.t_a_okno = Frame(self.tk_t_a_okno)
+    def enable(self, tk):
+        if self.je_konec_igre == False:
+            for child in self.okno_spodi.winfo_children():
+                child.configure(state='normal')
+        if tk == self.tk_try_again_okno:
+            self.smiley.configure(state='normal')
+        tk.destroy()
 
-        self.restart = Button(self.t_a_okno, text='Restart', command=self.restart)
-        self.menu = Button(self.t_a_okno, text='Menu', command=self.na_zacetno_okno)
-        self.resume = Button(self.t_a_okno, text='Resume', command=self.tk_t_a_okno.destroy)
+    def try_again(self):
+        self.disable()
+        self.smiley.configure(state='disabled')
+
+        self.tk_try_again_okno= Tk()
+        self.try_again_okno = Frame(self.tk_try_again_okno)
+
+        self.restart = Button(self.try_again_okno, text='Restart', command=self.restarti_igro)
+        self.menu = Button(self.try_again_okno, text='Menu', command= self.na_zacetno_okno)
+        self.resume = Button(self.try_again_okno, text='Resume', command= lambda x=self.tk_try_again_okno: self.enable(x))
 
         self.restart.grid(row=0, column=0)
         self.menu.grid(row=0, column=1)
         self.resume.grid(row=0, column=2)
 
-        self.t_a_okno.pack()
-        self.tk_t_a_okno.mainloop()
+        self.try_again_okno.pack()
+        self.tk_try_again_okno.protocol("WM_DELETE_WINDOW", lambda x=self.tk_try_again_okno: self.enable(x))
+        self.tk_try_again_okno.mainloop()
 
     def na_zacetno_okno(self, sklopka = 0):
-        self.tk_z_okno = Tk()
-        self.zacetno_okno = Zacetno_okno(self.tk_z_okno)
-
+        self.tk_glavno_okno.destroy()
         if sklopka == 0:
-            self.tk_t_a_okno.destroy()
-        elif sklopka == 2:
-            self.tk_mina.destroy()
-        self.tk.destroy()
-        self.zac_okno.tk.mainloop()
+            self.tk_try_again_okno.destroy()
+        elif sklopka == 1:
+            self.tk_konec_igre.destroy()
+        Zacetno_okno(Tk())
 
     def za_konec_igre(self):
-        self.smiley.configure(image=self.slika_smiley2)
-        self.smiley.configure(command=self.za_konec_igre)
-        for child in self.okno_spodi.winfo_children():
-            child.configure(state='disable')
-        self.tk3 = Tk()
-        self.highscore_okno = Frame(self.tk3)
+        self.disable()
+        self.smiley.configure(image=self.slika_smiley2, command=self.za_konec_igre, state='disabled')
+        self.tk_konec_igre = Tk()
+        self.highscore_okno = Frame(self.tk_konec_igre)
         self.poziv = Label(self.highscore_okno, text='Vpiši ime: ')
         self.vpis_imena = Entry(self.highscore_okno)
         self.imeknof = Button(self.highscore_okno, text='Potrdi', command=self.vzemi_ime)
@@ -250,21 +283,23 @@ class Glavno_okno:
         self.vpis_imena.grid(row=0, column=1)
         self.imeknof.grid(row=0, column=2)
         self.highscore_okno.pack()
-        self.tk3.mainloop()
+
+        self.tk_konec_igre.protocol("WM_DELETE_WINDOW", lambda x=self.tk_try_again_okno: self.enable(x))
+
+
+        self.tk_konec_igre.mainloop()
 
     def vzemi_ime(self):
-        self.zac_okno.vpisi_highscore(self.vpis_imena.get(), self.visina, self.sirina, self.stbomb)
-        self.tk3.destroy()
-        self.na_zacetno_okno(1)
+        vzdevek = self.vpis_imena.get()
+        if len(vzdevek) > 0 and len(vzdevek) < 10:
+            self.zac_okno.vpisi_highscore(vzdevek, self.visina, self.sirina, self.stbomb)
+            self.na_zacetno_okno(1)
 
-    def restart(self):
+    def restarti_igro(self):
+        self.tk_glavno_okno.destroy()
+        self.tk_try_again_okno.destroy()
         minolovec = Minolovec(self.visina, self.sirina, self.stbomb)
-        self.tk.destroy()
-        self.tk_t_a_okno.destroy()
-
-        tk_glavno_okno = Tk()
-        glavno_okno = Glavno_okno(tk_glavno_okno, self.visina, self.sirina, self.stbomb, minolovec, self.zac_okno)
-        tk_glavno_okno.mainloop()
+        Glavno_okno(Tk(), minolovec, self.zac_okno)
 
     #def zastavica(self, gumb):
     #    gumb.configure(image = self.slika_zastavica)
@@ -377,8 +412,6 @@ class Minolovec:
 
 # ZAČETEK KLICANJA ====================================================================================000000001
 
-tk_zacetno_okno = Tk()
-zacetno_okno = Zacetno_okno(tk_zacetno_okno)
-tk_zacetno_okno.mainloop()
+Zacetno_okno(Tk())
 
 
