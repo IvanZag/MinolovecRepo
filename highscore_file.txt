@@ -1,5 +1,2 @@
-Ime		Datum		Višina, širina in število bomb
-Frst		2017-05-25		2×2, 3
-Scnd		2017-05-25		3×3, 8
-Mowww:3		2017-05-25		4×4, 15
-
+Ime&Datum&Višina, širina in število bomb
+ivan&2017-06-14&6×6, 35
