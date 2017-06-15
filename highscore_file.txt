@@ -1,2 +1,5 @@
 Ime&Datum&Višina, širina in število bomb
 ivan&2017-06-14&6×6, 35
+abc&2017-06-14&7×7, 48
+enter&2017-06-14&7×7, 48
+aghv&2017-06-14&7×7, 48
